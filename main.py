@@ -21,7 +21,7 @@ def main():
     parser.add_argument('-d', '--destination_folder', required=True, type=str, help='Destination folder to where the folder will be copied to')
     parser.add_argument('-t', '--time', required=True, help='Time between sync check')
     parser.add_argument('-l', '--log_path', required=True, help="Destination folder of logs")
-    parser.add_argument('--debug', default=False, help="Enable debug Logs")
+    parser.add_argument('--debug', action=argparse.BooleanOptionalAction, help="Enable debug Logs")
 
     # Parse the command-line arguments
     args = parser.parse_args()
@@ -76,6 +76,7 @@ def main():
         
         if not os.path.isdir(destination_folder):
             path_split = destination_folder.split('/')
+            print(path_split)
             if len(path_split) <= 0:
                 raise Exception("Invalid destination path")
             path_control = ""
@@ -84,11 +85,14 @@ def main():
             else:
                 i = 1
                 path_control = "/"
-            path_control = path_split[i]
-            while i < len(path_split):
+            path_control += path_split[i]
+            while True:
+                Logger.debug(f"CHECKING IF DIRECTORY ({path_control}) EXISTS - {os.path.isdir(path_control)}")
                 if not os.path.isdir(path_control):
                     os.mkdir(path_control)
                 i += 1
+                if i >= len(path_split):
+                    break
                 path_control += f"/{path_split[i]}"
         Logger.info("DONE")
     except Exception as e:

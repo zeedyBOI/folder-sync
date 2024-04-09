@@ -26,10 +26,10 @@ class Logger:
             handler.setFormatter(formatter)
             logger.addHandler(handler)
 
-            if not os.path.isdir(f'./{log_path}'):
+            if not os.path.isdir(f'{log_path}'):
                 try:
                     path = os.getcwd()
-                    os.mkdir(f'{path}/{log_path}')
+                    os.mkdir(f'{log_path}')
                 except OSError as e:
                     print(f"Creation of the directory {log_path} failed {e}")
 
