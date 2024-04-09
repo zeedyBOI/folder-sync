@@ -1,11 +1,36 @@
 import os
 import sys
+import time
 import argparse
 from logger import Logger
 
 def is_absolute_path(path: str):
     return path.startswith("/")
 
+def check_directories(source_folder, destination_folder):
+    if not os.path.isdir(source_folder):
+        raise Exception(f"Source folder ({source_folder}) does not exist")
+    
+    if not os.path.isdir(destination_folder):
+        path_split = destination_folder.split('/')
+        if len(path_split) <= 0:
+            raise Exception("Invalid destination path")
+        path_control = ""
+        if not is_absolute_path(destination_folder):
+            i = 0
+        else:
+            i = 1
+            path_control = "/"
+        path_control += path_split[i]
+        while True:
+            Logger.debug(f"CHECKING IF DIRECTORY ({path_control}) EXISTS - {os.path.isdir(path_control)}")
+            if not os.path.isdir(path_control):
+                os.mkdir(path_control)
+            i += 1
+            if i >= len(path_split):
+                break
+            path_control += f"/{path_split[i]}"
+    Logger.info("Source/Destination folders OK")
 
 def main():
     source_folder : str
@@ -19,7 +44,7 @@ def main():
     # Define command-line arguments
     parser.add_argument('-s', '--source_folder', required=True ,type=str, help='Source folder from where the file will be synced')
     parser.add_argument('-d', '--destination_folder', required=True, type=str, help='Destination folder to where the folder will be copied to')
-    parser.add_argument('-t', '--time', required=True, help='Time between sync check')
+    parser.add_argument('-t', '--time', required=True, type=int, help='Time between sync check (seconds)')
     parser.add_argument('-l', '--log_path', required=True, help="Destination folder of logs")
     parser.add_argument('--debug', action=argparse.BooleanOptionalAction, help="Enable debug Logs")
 
@@ -36,9 +61,6 @@ def main():
     if args.debug is not None:
         debug = args.debug
         print(f'Debug: {args.debug}')
-    else:
-        print("Log path is required")
-        sys.exit(-1)
     
     Logger(log_path=log_path, debug=debug)
 
@@ -71,33 +93,19 @@ def main():
         sys.exit(-1)
     
     try:
-        if not os.path.isdir(source_folder):
-            raise Exception(f"Source folder ({source_folder}) does not exist")
-        
-        if not os.path.isdir(destination_folder):
-            path_split = destination_folder.split('/')
-            print(path_split)
-            if len(path_split) <= 0:
-                raise Exception("Invalid destination path")
-            path_control = ""
-            if not is_absolute_path(destination_folder):
-                i = 0
-            else:
-                i = 1
-                path_control = "/"
-            path_control += path_split[i]
-            while True:
-                Logger.debug(f"CHECKING IF DIRECTORY ({path_control}) EXISTS - {os.path.isdir(path_control)}")
-                if not os.path.isdir(path_control):
-                    os.mkdir(path_control)
-                i += 1
-                if i >= len(path_split):
-                    break
-                path_control += f"/{path_split[i]}"
-        Logger.info("DONE")
+        check_directories(source_folder, destination_folder)
     except Exception as e:
-        Logger.error(f"Error on main [{e}]")
+        Logger.error(f"Error checking directories [{e}]")
         sys.exit(-1)
+    
+    while True:
+        items_in_folder = os.listdir(source_folder)
+        for item in items_in_folder:
+            # ! Check if '.swp' files are skipped or not
+            if item.endswith(".swp"):
+                continue
+            print(item)
+        time.sleep(timeout)
     
 if __name__ == "__main__":
     main()
