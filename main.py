@@ -125,7 +125,7 @@ def main():
     # ! Define command-line arguments
     parser.add_argument('-s', '--source_folder', required=True ,type=str, help='Source folder from where the file will be synced')
     parser.add_argument('-d', '--destination_folder', required=True, type=str, help='Destination folder to where the folder will be copied to')
-    parser.add_argument('-t', '--time', required=True, type=int, help='Time between sync check (seconds)')
+    parser.add_argument('-t', '--time', required=True, type=float, help='Time between sync check (seconds)')
     parser.add_argument('-l', '--log_path', required=True, help="Destination folder of logs")
     parser.add_argument('--debug', action=argparse.BooleanOptionalAction, help="Enable debug Logs")
 
@@ -168,6 +168,9 @@ def main():
     
     if args.time is not None:
         timeout = args.time
+        if timeout < 0:
+            Logger.error("Timeout should be greater than 0")
+            sys.exit(-1)
         Logger.debug(f'Timeout: {args.time}')
     else:
         Logger.error("Timeout is required")
